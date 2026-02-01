@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 from dotenv import load_dotenv, find_dotenv
 from schemas import TravellerProfile
 from datetime import datetime, timedelta
@@ -156,7 +157,7 @@ with st.form("travel_form"):
 if st.session_state.submitted and "form_data" in st.session_state:
     # Call the API for backend here.
     st.toast("Planning Itineraries")
-    response = requests.get("http://localhost:8000/plan", params=st.session_state.form_data)
+    response = requests.get(f"{os.getenv("BACKEND_ENDPOINT", "http://localhost:8000")}/plan", params=st.session_state.form_data)
     
     match(response.status_code):
         case 200:
