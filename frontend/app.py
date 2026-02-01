@@ -1,10 +1,14 @@
 import streamlit as st
+from dotenv import load_dotenv, find_dotenv
+from schemas import TravellerProfile
+from datetime import datetime, timedelta
+from typing import Optional
+import requests
+
+load_dotenv(find_dotenv())
 
 # TODO: Structure this file to handle API requests, render frontend components, and modularise it.
 # TODO: Manual Slider not working for budget
-import streamlit as st
-from datetime import datetime, timedelta
-from typing import Optional
 
 # Browser tab configuration
 st.set_page_config(page_title="Travel Planning Form", page_icon="✈️")
@@ -37,7 +41,6 @@ with st.form("travel_form"):
     
     col3, col4 = st.columns(2)
     with col3:
-        # Put start country    
         start_country = st.text_input(
             "Start Country",
             placeholder="e.g., USA, UK, Canada",
@@ -59,30 +62,13 @@ with st.form("travel_form"):
     # Budget with dual input method
     col5, col6 = st.columns(2)
     with col5:
-        st.subheader("Budget")
-        budget_method = st.radio(
-            "Choose input method:",
-            ["Slider", "Manual Entry"],
-            horizontal=True
-        )
-        
-        if budget_method == "Slider":
-            budget = st.slider(
-                "Budget (SGD)",
-                min_value=0.0,
-                max_value=50000.0,
-                value=5000.0,
-                step=100.0,
-                format="$%.2f"
-            )
-        else:
-            budget = st.number_input(
-                "Budget (SGD)",
-                min_value=0.0,
-                max_value=1000000.0,
-                value=5000.0,
-                step=100.0,
-                format="%.2f"
+        budget = st.number_input(
+            "Budget (SGD)",
+            min_value=0.0,
+            max_value=50000.0,
+            value=5000.0,
+            step=100.0,
+            format="%.2f"
             )
     with col6:
         citizenship = st.text_input(
@@ -101,7 +87,7 @@ with st.form("travel_form"):
     
     if submitted:
         errors = []
-        
+
         if start_date >= end_date:
             errors.append(" End date must be after start date")
         
@@ -125,9 +111,10 @@ with st.form("travel_form"):
         
         cities = None
         if cities_input and cities_input.strip():
-            cities = [city.strip() for city in cities_input.split(',') if city.strip()]
-            if len(cities) > 30:
+            list_cities = [city.strip() for city in cities_input.split(',') if city.strip()]
+            if len(list_cities) > 30:
                 errors.append(" You've entered more than 20 cities. Consider reducing the list.")
+            cities = cities_input
         
         if errors:
             st.error("### Validation Errors")
@@ -145,28 +132,39 @@ with st.form("travel_form"):
             st.write(f"**Destination dest_country:** {dest_country}")
             
             if cities:
-                st.write(f"**Cities:** {', '.join(cities)}")
+                st.write(f"**Cities:** {cities}")
             else:
                 st.write("**Cities:** Not specified")
             
             st.write(f"**Budget:** ${budget:,.2f} SGD")
             st.write(f"**Additional Requirements:** {add_reqr}")
             
-            form_data = {
-                "start_date": start_date,
-                "end_date": end_date,
-                "citizenship": citizenship.strip(),
-                "start_country": start_country.strip(),
-                "dest_country": dest_country.strip(),
-                "cities": cities,
-                "budget": budget,
-                "add_reqr": add_reqr.strip()
-            }
+            form_data = TravellerProfile(
+                start_date=start_date,
+                end_date=end_date,
+                citizenship=citizenship.strip(),
+                start_country=start_country.strip(),
+                dest_country=dest_country.strip(),
+                cities=cities,
+                budget=budget,
+                add_reqr=add_reqr.strip()
+            )
             
             st.session_state.submitted = True
             st.session_state.form_data = form_data
 
-# Display saved data outside form if previously submitted
-if st.session_state.submitted and 'form_data' in st.session_state:
-    with st.expander("📋 View Previously Submitted Data"):
-        st.json(st.session_state.form_data, expanded=False)
+if st.session_state.submitted and "form_data" in st.session_state:
+    # Call the API for backend here.
+    st.toast("Planning Itineraries")
+    response = requests.get("http://localhost:8000/plan", params=st.session_state.form_data)
+    
+    match(response.status_code):
+        case 200:
+            st.toast("Response has been received successfully.", icon="🥳")
+            print("Response has been received successfully.")
+            print(f"Response: {response.json()}")
+        case 500:
+            st.toast("Request code 500 returned. Something went wrong with the server.", icon="🚨")
+            print("Request code 500 returned. Something went wrong with the server.")
+        case _:
+            print(f"Unexpected Request code {response.status_code} found.")
