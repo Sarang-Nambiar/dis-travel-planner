@@ -1,0 +1,43 @@
+"""
+This contains the main logic for building the planner workflow.
+"""
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import RetryPolicy
+from src.workflow.verdict_agent.agent import verdict_agent_node
+from src.schemas.schemas import State
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+logger = logging.getLogger(__name__)
+
+class TravelPlanner:
+
+    def build_planner_workflow(self):
+        """
+        Adding nodes and edges to the StateGraph for invokation.
+        """
+        logging.info("Building workflow graph...")
+        workflow = StateGraph(State)
+        workflow.add_node("verdict_agent", verdict_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
+        workflow.add_edge(START, "verdict_agent")
+        workflow.add_edge("verdict_agent", END)
+        return workflow.compile()
+
+    def invoke_planner(self, state: State) -> str:
+        """
+        Function to invoke the travel planner workflow.
+        """
+        logging.info("Invoking travel planner...")
+        travel_planner_agent = self.build_planner_workflow()
+
+        logging.info("Workflow graph has been compiled! Running the workflow")
+        final_state = travel_planner_agent.invoke(state)
+
+        logging.info(f"Final plan has been generated: {final_state['plan']}")
+
+        return final_state["plan"]

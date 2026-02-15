@@ -1,5 +1,16 @@
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings
+import logging
+
+# Configure basic logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+# Create a logger instance
+logger = logging.getLogger(__name__)
 
 # Obtains value from the environment files.
 class Settings(BaseSettings):
@@ -12,4 +23,4 @@ class Settings(BaseSettings):
     }
 
 settings = Settings()
-print("Environment variables:", settings.model_dump())
+logging.info("Environment variables:", settings.model_dump())
