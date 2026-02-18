@@ -15,6 +15,7 @@ class TravellerProfile(BaseModel):
     cities: str | None = None
     budget: float
     add_reqr: str | None = None
+    num_people: int = 1
 
 class TravelPlanDetails(BaseModel):
     plan: str # A set of consolidated plans which would be sent back to the frontend.

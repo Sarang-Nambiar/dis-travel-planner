@@ -1,6 +1,5 @@
 from datetime import date
 from pydantic import BaseModel
-from pydantic_core.core_schema import DateSchema
 
 class TravellerProfile(BaseModel):
     start_date: date
@@ -11,3 +10,4 @@ class TravellerProfile(BaseModel):
     cities: str | None = None
     budget: float
     add_reqr: str | None = None
+    num_people: int = 1

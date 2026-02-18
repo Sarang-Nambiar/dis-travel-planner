@@ -61,7 +61,7 @@ with st.form("travel_form"):
     )
     
     # Budget with dual input method
-    col5, col6 = st.columns(2)
+    col5, col6, col7 = st.columns(3)
     with col5:
         budget = st.number_input(
             "Budget (SGD)",
@@ -77,6 +77,16 @@ with st.form("travel_form"):
             placeholder="e.g., USA, UK, Canada",
             help="Enter your citizenship country"
         )
+
+    with col7:
+        num_people = st.number_input(
+            "Number of people",
+            help="Number of people embarking the trip.",
+            min_value=0,
+            max_value=20,
+            value=1,
+            step=1,
+            )
 
     add_reqr = st.text_area(
         "Additional Requirements (Optional)",
@@ -109,6 +119,9 @@ with st.form("travel_form"):
             errors.append(" Budget must be greater than 0")
         elif budget < 50:
             errors.append(" Budget seems very low. Please verify.")
+
+        if num_people <= 0:
+            errors.append(" num_people must be greater than 0")
         
         cities = None
         if cities_input and cities_input.strip():
@@ -148,7 +161,8 @@ with st.form("travel_form"):
                 dest_country=dest_country.strip(),
                 cities=cities,
                 budget=budget,
-                add_reqr=add_reqr.strip()
+                add_reqr=add_reqr.strip(),
+                num_people=num_people
             )
             
             st.session_state.submitted = True
