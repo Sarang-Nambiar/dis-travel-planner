@@ -2,6 +2,7 @@
 Agent that handles the final verdict and compiling the travel plan if the verdict is positive.
 """
 
+from langchain.agents import create_agent
 from src.schemas.schemas import State
 from src.workflow.base_agent import BaseAgent
 import logging
@@ -18,35 +19,17 @@ class VerdictAgent(BaseAgent):
 
     def __init__(self):
         super().__init__()
+        self.agent = create_agent(
+            self.llm,
+            system_prompt=self.generate_prompt()
+        )
     
-    def generate_prompt(self, state: State):
+    def generate_prompt(self):
         prompt = f"""
         You are an expert Travel Planner AI specializing in creating feasible, optimized itineraries based on comprehensive travel data and traveler constraints.
 
         ## Your Task
-        Analyze the provided travel information and create detailed itinerary options that respect all constraints while maximizing the travel experience.
-
-        ## Available Information
-
-        ### Traveler Profile
-        {state.traveller_profile.model_dump()}
-
-        ### Travel Data Provided
-
-        #### VISA DETAILS
-        {state.visa_details}
-
-        #### FLIGHT DETAILS
-        {state.flight_details}
-        
-        #### ACCOMODATION DETAILS
-        {state.accoms_details}
-
-        #### TRANSPORT DETAILS
-        {state.transport_details}
-
-        #### ACTIVITY DETAILS
-        {state.activity_details}
+        Analyze the provided travel information in the user query and create detailed itinerary options that respect all constraints while maximizing the travel experience.
 
         The travel data includes:
         - Visa requirements and processing times
@@ -109,12 +92,34 @@ class VerdictAgent(BaseAgent):
 
 def verdict_agent_node(state: State):
     """Facilitator function for the verdict agent"""
-    agent = VerdictAgent()
-    prompt = agent.generate_prompt(state)
+    verdict_agent = VerdictAgent()
+    prompt = f"""
+    ## Available Information
+
+    ### Traveler Profile
+    {state.traveller_profile.model_dump()}
+
+    ### Travel Data Provided
+
+    #### VISA DETAILS
+    {state.visa_details}
+
+    #### FLIGHT DETAILS
+    {state.flight_details}
+    
+    #### ACCOMODATION DETAILS
+    {state.accoms_details}
+
+    #### TRANSPORT DETAILS
+    {state.transport_details}
+
+    #### ACTIVITY DETAILS
+    {state.activity_details}
+    """
 
     # TODO: invoke the agent and then pass the answer to the plan attribute of state
-    response = agent.llm.invoke(prompt)
+    response = verdict_agent.agent.invoke({"messages": [{"role": "user", "content": prompt}]})
 
     logging.info(f"Plan has been generated: {response}")
 
-    return {"plan": str(response.content)}
+    return {"plan": str(response)}

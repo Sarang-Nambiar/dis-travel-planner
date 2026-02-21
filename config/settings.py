@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class Settings(BaseSettings):
     auth_key: SecretStr = Field(alias='openrouter_api_key')
     base_url: str = Field(alias='openrouter_base_url')
+    rapidapi_key: SecretStr = Field(alias='rapidapi_secret')
     
     model_config = {
         "env_file": ".env",

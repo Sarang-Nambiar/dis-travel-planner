@@ -7,6 +7,8 @@ from src.workflow.verdict_agent.agent import verdict_agent_node
 from src.schemas.schemas import State
 import logging
 
+from src.workflow.visa_agent.agent import visa_agent_node
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -23,9 +25,17 @@ class TravelPlanner:
         """
         logging.info("Building workflow graph...")
         workflow = StateGraph(State)
+
+        # creating the nodes
+        workflow.add_node("visa_agent", visa_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
         workflow.add_node("verdict_agent", verdict_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
-        workflow.add_edge(START, "verdict_agent")
+
+        # connecting the nodes
+        # current graph START -> visa_agent -> verdict_agent -> END
+        workflow.add_edge(START, "visa_agent")
+        workflow.add_edge("visa_agent", "verdict_agent")
         workflow.add_edge("verdict_agent", END)
+
         return workflow.compile()
 
     def invoke_planner(self, state: State) -> str:
