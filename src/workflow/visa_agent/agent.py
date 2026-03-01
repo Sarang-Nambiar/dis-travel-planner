@@ -74,6 +74,8 @@ class VisaAgent(BaseAgent):
 def visa_agent_node(state: State):
     """Facilitator function for the visa agent"""
     visa_agent = VisaAgent()
+
+    logging.info(f"visa agent is now active!")
     
     prompt = f"""
     Below is some useful information that would help you determine the visa procedure.
@@ -82,6 +84,7 @@ def visa_agent_node(state: State):
     end_date: '{state.traveller_profile.end_date}'
     citizenship: '{state.traveller_profile.citizenship}'
     origin_country: '{state.traveller_profile.start_country}'
+    origin_city: '{state.traveller_profile.start_city}'
     destination_country: '{state.traveller_profile.dest_country}'
     """
 

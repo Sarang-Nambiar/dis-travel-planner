@@ -40,7 +40,7 @@ with st.form("travel_form"):
             help="Select your trip end date"
         )
     
-    col3, col4 = st.columns(2)
+    col3, col4, col_start_city = st.columns(3)
     with col3:
         start_country = st.text_input(
             "Start Country",
@@ -53,6 +53,13 @@ with st.form("travel_form"):
             placeholder="e.g., France, Japan, Italy",
             help="Enter your destination country"
         )
+    with col_start_city:
+        start_city = st.text_input(
+            "Start City",
+            placeholder="e.g., Paris, Tokyo, Venice.",
+            help="Enter your starting city to embark your trip from."
+        )
+
     
     cities_input = st.text_area(
         "Cities to Visit (Optional)",
@@ -159,6 +166,7 @@ with st.form("travel_form"):
                 citizenship=citizenship.strip(),
                 start_country=start_country.strip(),
                 dest_country=dest_country.strip(),
+                start_city=start_city.strip(),
                 cities=cities,
                 budget=budget,
                 add_reqr=add_reqr.strip(),

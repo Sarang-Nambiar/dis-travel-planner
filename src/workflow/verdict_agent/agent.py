@@ -93,6 +93,9 @@ class VerdictAgent(BaseAgent):
 def verdict_agent_node(state: State):
     """Facilitator function for the verdict agent"""
     verdict_agent = VerdictAgent()
+
+    logging.info(f"verdict agent is now active!")
+
     prompt = f"""
     ## Available Information
 

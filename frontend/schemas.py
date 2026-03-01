@@ -7,6 +7,7 @@ class TravellerProfile(BaseModel):
     citizenship: str
     start_country: str
     dest_country: str
+    start_city: str
     cities: str | None = None
     budget: float
     add_reqr: str | None = None
