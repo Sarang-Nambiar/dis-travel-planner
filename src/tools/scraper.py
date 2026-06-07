@@ -9,6 +9,7 @@ import pandas as pd
 from config.settings import settings
 import logging
 from langchain.tools import tool
+import requests
 import http.client
 from fast_flights import (
     FlightData,
@@ -170,6 +171,52 @@ def get_visa_details(passport: str, destination: str) -> str:
 
     return requirements
 
+@tool
+def get_hotels(city: str):
+    """
+    Fetches all the available hotels and their prices based on the name of the city provided.
+
+    city: Name of the city the user is travelling to.
+
+    Assume that the hotels listed belong to the check in and check out period intended by the user.
+    """
+    base_url = "https://api.makcorps.com/free"
+    url = f"{base_url}?city={city}"
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        
+        # Flatten the response into a list of hotel entries
+        output = []
+        for hotel in data:
+            hotel_info = hotel.get("hotelName", "")
+            hotel_id = hotel.get("hotelId", "")
+            prices = hotel.get("prices", [])
+            
+            # Extract all price entries
+            price_entries = []
+            for i in range(len(prices)):
+                price_data = prices[i]
+                entry = {
+                    "price": price_data.get(f"price{i}", ""),
+                    "tax": price_data.get(f"tax{i}", ""),
+                    "vendor": price_data.get(f"vendor{i}", "")
+                }
+                price_entries.append(entry)
+            
+            output.append({
+                "hotel": hotel_info,
+                "hotel_id": hotel_id,
+                "prices": price_entries
+            })
+        
+        return output
+    
+    except Exception as e:
+        logging.error(f"Error fetching hotels for {city}: {e}")
+        return []
 
 if __name__ == "__main__":
     # get_visa_details("CN", "ID")
