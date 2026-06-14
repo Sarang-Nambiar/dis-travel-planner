@@ -66,7 +66,7 @@ with st.form("travel_form"):
     )
     
     # Budget with dual input method
-    col5, col6 = st.columns(3)
+    col5, col6 = st.columns(2)
     col7, col8 = st.columns(2)
     with col7:
         flight_budget = st.number_input(
