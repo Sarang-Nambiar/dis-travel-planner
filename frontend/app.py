@@ -75,7 +75,8 @@ with st.form("travel_form"):
             max_value=50000.0,
             value=3000.0,
             step=100.0,
-            format="%.2f"
+            format="%.2f",
+            help="The amount you are dedicating to flight expenses."
             )
     with col8:
         accoms_budget = st.number_input(
@@ -84,7 +85,8 @@ with st.form("travel_form"):
             max_value=50000.0,
             value=500.0,
             step=100.0,
-            format="%.2f"
+            format="%.2f",
+            help="The amount you are dedicating to accomodation"
             )
     with col5:
         citizenship = st.text_input(
