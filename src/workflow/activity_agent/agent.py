@@ -35,7 +35,6 @@ class ActivityScout(BaseAgent):
         - Focus on unique, memorable experiences tailored to the user's interests and budget.
         - Suggest a mix of popular attractions, hidden gems, cultural experiences, and relaxation options.
         - Consider the traveler's duration of stay in each city (from start_date to end_date).
-        - Respect the budget constraint when recommending paid activities.
 
         # Activity Categories
         Curate from these diverse categories:
@@ -85,7 +84,6 @@ def activity_agent_node(state: State):
     Destination Countries: '{state.traveller_profile.dest_country}'
     Origin Cities: '{state.traveller_profile.start_city}'
     Destination Cities: '{state.cities}'
-    Budget: '{state.traveller_profile.budget}'
     Additional Requirements: '{state.traveller_profile.add_reqr}'
     Number of People: {state.traveller_profile.num_people}
     """

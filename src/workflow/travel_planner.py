@@ -3,6 +3,8 @@ This contains the main logic for building the planner workflow.
 """
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import RetryPolicy
+from src.workflow.accoms_agent.agent import accoms_agent_node
+from src.workflow.activity_agent.agent import activity_agent_node
 from src.workflow.flight_agent.agent import flight_agent_node
 from src.workflow.verdict_agent.agent import verdict_agent_node
 from src.schemas.schemas import State
@@ -30,13 +32,17 @@ class TravelPlanner:
         # creating the nodes
         workflow.add_node("visa_agent", visa_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
         workflow.add_node("flight_agent", flight_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
+        workflow.add_node("activity_agent", activity_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
+        workflow.add_node("accoms_agent", accoms_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
         workflow.add_node("verdict_agent", verdict_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
 
         # connecting the nodes
-        # current graph START -> visa_agent -> flight_agent -> verdict_agent -> END
+        # current graph START -> visa_agent -> flight_agent -> activity_agent -> accoms_agent -> verdict_agent -> END
         workflow.add_edge(START, "visa_agent")
         workflow.add_edge("visa_agent", "flight_agent")
-        workflow.add_edge("flight_agent", "verdict_agent")
+        workflow.add_edge("flight_agent", "activity_agent")
+        workflow.add_edge("activity_agent", "accoms_agent")
+        workflow.add_edge("accoms_agent", "verdict_agent")
         workflow.add_edge("verdict_agent", END)
 
         return workflow.compile()
