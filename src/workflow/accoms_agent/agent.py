@@ -88,6 +88,7 @@ def accoms_agent_node(state: State):
     Below is useful information that would help you determine the accommodation details:
 
     Destination Cities: '{state.traveller_profile.cities}'
+    Budget: '{state.traveller_profile.budget.get("accoms", "Not Available")}'
     Additional Requirements: '{state.traveller_profile.add_reqr}'
     """
 
@@ -95,4 +96,4 @@ def accoms_agent_node(state: State):
 
     logging.info(f"Accommodation details have been generated: {response}")
 
-    return {"accommodation_details": str(response)}
+    return {"accoms_details": str(response)}

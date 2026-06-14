@@ -91,8 +91,6 @@ class FlightAgent(BaseAgent):
         Practical, confident, and traveler-friendly. Be concise in analysis but warm in delivery. Think like a knowledgeable friend who has done this route before.
         """
         
-        # prompt = f"Hi Deepseek! Look at this traveller info and repeat it back. {state.traveller_profile}, This is the accomodation details: {state.accoms_details}" # test prompt
-
         logging.info(f"Creating sys prompt for the flight agent: {sys_prompt}")
         return sys_prompt 
 
@@ -112,7 +110,7 @@ def flight_agent_node(state: State):
     origin_country: '{state.traveller_profile.start_country}'
     origin_city: '{state.traveller_profile.start_city}'
     destination_country: '{state.traveller_profile.dest_country}'
-    budget: '{state.traveller_profile.budget}'
+    Budget: '{state.traveller_profile.budget.get("flight", "Not Available")}'
     additional requirements: '{state.traveller_profile.add_reqr}'
     """
 
