@@ -31,12 +31,11 @@ class VerdictAgent(BaseAgent):
         ## Your Task
         Analyze the provided travel information in the user query and create detailed itinerary options that respect all constraints while maximizing the travel experience.
 
-        The travel data includes:
+        The travel data could include:
         - Visa requirements and processing times
         - Available flights (routes, times, costs)
         - Accommodation options (locations, prices, availability)
-        - Inter-city transportation (modes, durations, costs)
-        - Activities and attractions (descriptions, costs, time required, operating hours)
+        - Activities and attractions (descriptions, operating hours)
 
         ## Constraints to Respect
         1. **Budget**: Total trip cost must not exceed the traveler's budget
@@ -61,11 +60,11 @@ class VerdictAgent(BaseAgent):
         - **Overview**: Brief description and what makes this option unique (e.g., "Budget-focused", "Activity-packed", "Relaxed pace")
         - **Day-by-day breakdown** including:
         - Date and location
-        - Accommodation (name, cost)
-        - Transportation between cities (mode, time, cost)
+        - Accommodation (name) 
+        - Transportation between cities (mode)
         - Activities scheduled (with times and costs)
         - Estimated daily cost
-        - **Total Cost Breakdown**: Flights + accommodation + transport + activities + buffer (10%)
+        - **Total Cost Breakdown**: Flights + accommodation + activities (estimate) + buffer (10%)
         - **Pros & Cons**: Key advantages and trade-offs of this option
 
         ### Step 3: Recommendations & Considerations
@@ -84,8 +83,6 @@ class VerdictAgent(BaseAgent):
         ## Tone
         Professional, practical, and enthusiastic. Balance thoroughness with readability.
         """
-        
-        # prompt = f"Hi Deepseek! Look at this traveller info and repeat it back. {state.traveller_profile}, This is the accomodation details: {state.accoms_details}" # test prompt
 
         logging.info(f"Prompting the verdict agent: {prompt}")
         return prompt
@@ -113,14 +110,10 @@ def verdict_agent_node(state: State):
     #### ACCOMODATION DETAILS
     {state.accoms_details}
 
-    #### TRANSPORT DETAILS
-    {state.transport_details}
-
     #### ACTIVITY DETAILS
     {state.activity_details}
     """
 
-    # TODO: invoke the agent and then pass the answer to the plan attribute of state
     response = verdict_agent.agent.invoke({"messages": [{"role": "user", "content": prompt}]})
 
     logging.info(f"Plan has been generated: {response}")
