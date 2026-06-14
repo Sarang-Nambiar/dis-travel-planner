@@ -8,8 +8,6 @@ import requests
 
 load_dotenv(find_dotenv())
 
-# TODO: Structure this file to handle API requests, render frontend components, and modularise it.
-# TODO: Manual Slider not working for budget
 
 # Browser tab configuration
 st.set_page_config(page_title="Travel Planning Form", page_icon="✈️")
@@ -68,24 +66,34 @@ with st.form("travel_form"):
     )
     
     # Budget with dual input method
-    col5, col6, col7 = st.columns(3)
-    with col5:
-        budget = st.number_input(
-            "Budget (SGD)",
+    col5, col6 = st.columns(3)
+    col7, col8 = st.columns(2)
+    with col7:
+        flight_budget = st.number_input(
+            "Flight Budget (SGD)",
             min_value=0.0,
             max_value=50000.0,
-            value=5000.0,
+            value=3000.0,
             step=100.0,
             format="%.2f"
             )
-    with col6:
+    with col8:
+        accoms_budget = st.number_input(
+            "Accommodation Budget (SGD)",
+            min_value=0.0,
+            max_value=50000.0,
+            value=500.0,
+            step=100.0,
+            format="%.2f"
+            )
+    with col5:
         citizenship = st.text_input(
             "Citizenship",
             placeholder="e.g., USA, UK, Canada",
             help="Enter your citizenship country"
         )
 
-    with col7:
+    with col6:
         num_people = st.number_input(
             "Number of people",
             help="Number of people embarking the trip.",
@@ -122,9 +130,14 @@ with st.form("travel_form"):
         elif len(dest_country.strip()) < 2:
             errors.append(" Destination country must be at least 2 characters")
         
-        if budget <= 0:
+        if flight_budget <= 0:
             errors.append(" Budget must be greater than 0")
-        elif budget < 50:
+        elif flight_budget < 50:
+            errors.append(" Budget seems very low. Please verify.")
+
+        if accoms_budget <= 0:
+            errors.append(" Budget must be greater than 0")
+        elif accoms_budget < 50:
             errors.append(" Budget seems very low. Please verify.")
 
         if num_people <= 0:
@@ -157,20 +170,26 @@ with st.form("travel_form"):
             else:
                 st.write("**Cities:** Not specified")
             
-            st.write(f"**Budget:** ${budget:,.2f} SGD")
+            st.write(f"**Accoms Budget:** ${accoms_budget:,.2f} SGD")
+            st.write(f"**Flight Budget:** ${flight_budget:,.2f} SGD")
             st.write(f"**Additional Requirements:** {add_reqr}")
             
+            budget_dict = {
+                "flight": int(flight_budget),
+                "accoms": int(accoms_budget)
+            }
+
             form_data = TravellerProfile(
-                start_date=start_date,
-                end_date=end_date,
-                citizenship=citizenship.strip(),
-                start_country=start_country.strip(),
-                dest_country=dest_country.strip(),
-                start_city=start_city.strip(),
-                cities=cities,
-                budget=budget,
-                add_reqr=add_reqr.strip(),
-                num_people=num_people
+            start_date=start_date,
+            end_date=end_date,
+            citizenship=citizenship.strip(),
+            start_country=start_country.strip(),
+            dest_country=dest_country.strip(),
+            start_city=start_city.strip(),
+            cities=cities,
+            budget=budget_dict,
+            add_reqr=add_reqr.strip(),
+            num_people=num_people
             )
             
             st.session_state.submitted = True

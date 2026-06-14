@@ -9,6 +9,6 @@ class TravellerProfile(BaseModel):
     dest_country: str
     start_city: str
     cities: str | None = None
-    budget: float
+    budget: dict[str, int] = {}
     add_reqr: str | None = None
     num_people: int = 1
