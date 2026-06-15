@@ -83,7 +83,7 @@ def activity_agent_node(state: State):
     Origin Country: '{state.traveller_profile.start_country}'
     Destination Countries: '{state.traveller_profile.dest_country}'
     Origin Cities: '{state.traveller_profile.start_city}'
-    Destination Cities: '{state.cities}'
+    Destination Cities: '{state.traveller_profile.cities}'
     Additional Requirements: '{state.traveller_profile.add_reqr}'
     Number of People: {state.traveller_profile.num_people}
     """

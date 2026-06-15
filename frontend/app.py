@@ -1,3 +1,5 @@
+import json
+
 import streamlit as st
 import os
 from dotenv import load_dotenv, find_dotenv
@@ -177,8 +179,8 @@ with st.form("travel_form"):
             st.write(f"**Additional Requirements:** {add_reqr}")
             
             budget_dict = {
-                "flight": int(flight_budget),
-                "accoms": int(accoms_budget)
+                "flight": float(flight_budget),
+                "accoms": float(accoms_budget)
             }
 
             form_data = TravellerProfile(
@@ -189,7 +191,7 @@ with st.form("travel_form"):
             dest_country=dest_country.strip(),
             start_city=start_city.strip(),
             cities=cities,
-            budget=budget_dict,
+            budget=json.dumps(budget_dict),
             add_reqr=add_reqr.strip(),
             num_people=num_people
             )
