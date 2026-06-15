@@ -3,8 +3,8 @@ All pre-defined schemas
 """
 
 from datetime import date
-from pydantic import BaseModel
-from pydantic import BaseModel
+import json
+from pydantic import BaseModel, field_validator
 
 class TravellerProfile(BaseModel):
     start_date: date
@@ -14,9 +14,16 @@ class TravellerProfile(BaseModel):
     dest_country: str
     start_city: str
     cities: str | None = None
-    budget: dict[str, int]
+    budget: str
     add_reqr: str | None = None
     num_people: int = 1
+
+    @field_validator("budget")
+    @classmethod
+    def parse_budget(cls, v):
+        if isinstance(v, str):
+            return json.loads(v)
+        return v
 
 class TravelPlanDetails(BaseModel):
     plan: str # A set of consolidated plans which would be sent back to the frontend.
