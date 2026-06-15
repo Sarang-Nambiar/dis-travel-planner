@@ -5,6 +5,7 @@ from src.schemas.schemas import State
 from src.workflow.base_agent import BaseAgent
 from src.tools.scraper import get_hotels
 from langchain.agents import create_agent
+import re
 
 logging.basicConfig(
     level=logging.INFO,
@@ -70,6 +71,13 @@ class AccommodationsAgent(BaseAgent):
         # Error Handling
         If no hotels are found for a city, inform the user and suggest that the city may be off-season or they could consider nearby cities with similar attractions.
 
+        # Output Format
+        For each city, provide:
+        - City Name, Budget Range, Hotel Options with prices
+        - **Total Cost**: Sum of cheapest rates across all cities
+        - **Budget Check**: Whether total cost fits within the provided budget.
+        - **Feasibility**: Boolean indicating if this option is affordable (True/False)
+
         # Tone
         Practical, helpful, and budget-aware. Present options in a way that helps the user make informed choices based on their priorities.
         """
@@ -78,22 +86,58 @@ class AccommodationsAgent(BaseAgent):
         return sys_prompt
 
 
+def accoms_node_router(state: State):
+    """
+    Function to conditionally route the flight node to the next one in the StateGraph
+    """
+
+    if not state.accoms_feasible or state.accoms_total_cost > state.traveller_profile.budget.get("accoms", 0):
+        return "verdict_agent"
+
+    return "activity_agent"
+
 def accoms_agent_node(state: State):
     """Facilitator function for the accommodations agent."""
     accoms_agent = AccommodationsAgent()
 
     logging.info(f"accommodations agent is now active!")
     
+    accoms_budget = state.traveller_profile.budget.get("accoms", "Not Provided")
+    
     prompt = f"""
     Below is useful information that would help you determine the accommodation details:
 
     Destination Cities: '{state.traveller_profile.cities}'
-    Budget: '{state.traveller_profile.budget.get("accoms", "Not Available")}'
+    Accommodation Budget: '{accoms_budget}'
     Additional Requirements: '{state.traveller_profile.add_reqr}'
     """
 
     response = accoms_agent.agent.invoke({"messages": [{"role": "user", "content": prompt}]})
 
     logging.info(f"Accommodation details have been generated: {response}")
-
-    return {"accoms_details": str(response)}
+    
+    response_str = str(response)
+    
+    # Extract total accommodation cost and feasibility
+    accoms_cost_match = re.search(r"(Total.*?cost.*?)([\d,]+)\s*\((.*)\)", response_str, re.IGNORECASE)
+    feasibility_match = re.search(r"Feasibility: (True|False)", response_str)
+    
+    accoms_total = "N/A"
+    accoms_feasible = True
+    
+    if accoms_cost_match:
+        # Clean up the match to get just the number
+        price_part = accoms_cost_match.group(0)
+        # Extract numeric value
+        num_match = re.search(r"\d+(?:,\d{3})*(?:\.\d+)?", price_part)
+        if num_match:
+            accoms_total = num_match.group(1).replace(",", ".")
+    
+    if feasibility_match:
+        accoms_feasible = feasibility_match.group(1).lower() == "true"
+    
+    return {
+        "accoms_details": str(response),
+        "accoms_total_cost": accoms_total,
+        "accoms_feasible": accoms_feasible
+    }

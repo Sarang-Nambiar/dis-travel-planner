@@ -24,8 +24,12 @@ class TravelPlanDetails(BaseModel):
 class State(BaseModel):
     traveller_profile: TravellerProfile
     accoms_details: str = "Accoms Not Available"
+    accoms_total_cost: float = 0.0
+    accoms_feasible: bool = False
     activity_details: str = "Activities Not Available"
     visa_details: str = "Visa Not Available"
     transport_details: str = "Transport Not Available"
     flight_details: str = "Flight Not Available"
+    flight_feasible: bool = False
+    flight_total_cost: float = 0.0
     plan: str = ""

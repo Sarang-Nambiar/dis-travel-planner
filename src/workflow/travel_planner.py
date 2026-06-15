@@ -3,9 +3,9 @@ This contains the main logic for building the planner workflow.
 """
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import RetryPolicy
-from src.workflow.accoms_agent.agent import accoms_agent_node
+from src.workflow.accoms_agent.agent import accoms_agent_node, accoms_node_router
 from src.workflow.activity_agent.agent import activity_agent_node
-from src.workflow.flight_agent.agent import flight_agent_node
+from src.workflow.flight_agent.agent import flight_agent_node, flight_node_router
 from src.workflow.verdict_agent.agent import verdict_agent_node
 from src.schemas.schemas import State
 import logging
@@ -21,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class TravelPlanner:
-
+    
     def build_planner_workflow(self):
         """
         Adding nodes and edges to the StateGraph for invokation.
@@ -30,6 +30,9 @@ class TravelPlanner:
         workflow = StateGraph(State)
 
         # creating the nodes
+        # TODO: Add a conditional state edge for flight and accoms agent to check if the budget has been respected or not
+        # If not respected, go straight to the budget agent
+        # else continue through the graph.
         workflow.add_node("visa_agent", visa_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
         workflow.add_node("flight_agent", flight_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
         workflow.add_node("activity_agent", activity_agent_node, retry_policy=RetryPolicy(max_attempts=3, initial_interval=1.0))
@@ -40,9 +43,9 @@ class TravelPlanner:
         # current graph START -> visa_agent -> flight_agent -> activity_agent -> accoms_agent -> verdict_agent -> END
         workflow.add_edge(START, "visa_agent")
         workflow.add_edge("visa_agent", "flight_agent")
-        workflow.add_edge("flight_agent", "activity_agent")
-        workflow.add_edge("activity_agent", "accoms_agent")
-        workflow.add_edge("accoms_agent", "verdict_agent")
+        workflow.add_conditional_edges("flight_agent", flight_node_router)
+        workflow.add_conditional_edges("accoms_agent", accoms_node_router)
+        workflow.add_edge("activity_agent", "verdict_agent")
         workflow.add_edge("verdict_agent", END)
 
         return workflow.compile()

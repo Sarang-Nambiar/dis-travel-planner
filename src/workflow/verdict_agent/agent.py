@@ -106,9 +106,13 @@ def verdict_agent_node(state: State):
 
     #### FLIGHT DETAILS
     {state.flight_details}
+    Total cost: {state.flight_total_cost}
+    Feasible?: {state.flight_feasible}
     
     #### ACCOMODATION DETAILS
     {state.accoms_details}
+    Total cost: {state.accoms_total_cost}
+    Feasible?: {state.accoms_feasible}
 
     #### ACTIVITY DETAILS
     {state.activity_details}

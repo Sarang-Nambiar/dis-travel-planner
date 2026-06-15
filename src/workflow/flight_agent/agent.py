@@ -6,6 +6,7 @@ from src.tools.scraper import get_flight_details
 from src.workflow.base_agent import BaseAgent
 from langchain.agents import create_agent
 import logging
+import re
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,8 +16,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# TODO: Figure out a way to effectively use and calculate the budget based on the various stages of the workflow
-# If by the end of execution of some node, the budget ends up being zero, then it should immediately jump to the verdict agent saying it is not possible.
 class FlightAgent(BaseAgent):
 
     def __init__(self):
@@ -87,6 +86,12 @@ class FlightAgent(BaseAgent):
         # Error Handling
         If the tool returns an empty list or all flights have empty `departure`/`arrival`/`name` fields, do not fabricate recommendations. Inform the user that live data could not be retrieved for this route and suggest they check Google Flights directly at https://www.google.com/flights for the queried route and dates.
 
+        # Output Format
+        For each of the 3 recommendations, provide:
+        - Airline, Route, Duration, Stops, Arrives Next Day, Delay Info, Price
+        - **Budget Check**: Total price and whether it fits within the flight budget.
+        - **Feasibility**: Boolean indicating if this option is affordable (True/False)
+
         # Tone
         Practical, confident, and traveler-friendly. Be concise in analysis but warm in delivery. Think like a knowledgeable friend who has done this route before.
         """
@@ -94,6 +99,15 @@ class FlightAgent(BaseAgent):
         logging.info(f"Creating sys prompt for the flight agent: {sys_prompt}")
         return sys_prompt 
 
+def flight_node_router(state: State):
+    """
+    Function to conditionally route the flight node to the next one in the StateGraph
+    """
+
+    if not state.flight_feasible or state.flight_total_cost > state.traveller_profile.budget.get("flight", 0):
+        return "verdict_agent"
+
+    return "activity_agent"
 
 def flight_agent_node(state: State):
     """Facilitator function for the visa agent"""
@@ -102,7 +116,7 @@ def flight_agent_node(state: State):
     logging.info(f"flight agent is now active!")
     
     prompt = f"""
-    Below is some useful information that would help you determine the visa procedure.
+    Below is some useful information that would help you determine the flight options.
 
     start_date: '{state.traveller_profile.start_date}'
     end_date: '{state.traveller_profile.end_date}'
@@ -110,12 +124,37 @@ def flight_agent_node(state: State):
     origin_country: '{state.traveller_profile.start_country}'
     origin_city: '{state.traveller_profile.start_city}'
     destination_country: '{state.traveller_profile.dest_country}'
-    Budget: '{state.traveller_profile.budget.get("flight", "Not Available")}'
+    flight_budget: '{state.traveller_profile.budget.get("flight", "Not Provided")}'
     additional requirements: '{state.traveller_profile.add_reqr}'
     """
 
     response = flight_agent.agent.invoke({"messages": [{"role": "user", "content": prompt}]})
 
     logging.info(f"Plan has been generated: {response}")
-
-    return {"flight_details": str(response)}
+    
+    # Parse budget feasibility from response
+    response_str = str(response)
+    
+    # Extract total flight cost and feasibility
+    flight_cost_match = re.search(r"(Total.*?price.*?)([\d,]+)\s*\((.*)\)", response_str, re.IGNORECASE)
+    feasibility_match = re.search(r"Feasibility: (True|False)", response_str)
+    
+    flight_total = "N/A"
+    flight_feasible = True
+    
+    if flight_cost_match:
+        # Clean up the match to get just the number
+        price_part = flight_cost_match.group(0)
+        # Extract numeric value
+        num_match = re.search(r"\d+(?:,\d{3})*(?:\.\d+)?", price_part)
+        if num_match:
+            flight_total = num_match.group(1).replace(",", ".")
+    
+    if feasibility_match:
+        flight_feasible = feasibility_match.group(1).lower() == "true"
+    
+    return {
+        "flight_details": str(response),
+        "flight_total_cost": flight_total,
+        "flight_feasible": flight_feasible
+    }
