@@ -2,6 +2,8 @@
 Agent that handles activity details for the itineraries.
 """
 import logging
+
+from langchain.agents import create_agent
 from src.schemas.schemas import State
 from src.schemas.schemas import State
 from src.workflow.base_agent import BaseAgent
@@ -20,7 +22,10 @@ class ActivityScout(BaseAgent):
 
     def __init__(self):
         super().__init__()
-        self.agent = None  # Will be initialized when needed
+        self.agent = create_agent(
+            self.llm,
+            system_prompt=self.generate_prompt()
+        )
 
     def generate_prompt(self) -> str:
         """Generate the system prompt for the activity agent."""
