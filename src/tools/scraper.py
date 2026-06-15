@@ -181,10 +181,14 @@ def get_hotels(city: str):
     Assume that the hotels listed belong to the check in and check out period intended by the user.
     """
     base_url = "https://api.makcorps.com/free"
-    url = f"{base_url}?city={city}"
+    url = f"{base_url}/{city}"
+
+    headers = {
+        "Authorization": settings.accoms_api.get_secret_value()
+    }
     
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
         
