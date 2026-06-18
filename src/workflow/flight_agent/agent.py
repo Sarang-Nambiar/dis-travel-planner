@@ -142,19 +142,19 @@ def flight_agent_node(state: State):
     flight_total = "N/A"
     flight_feasible = True
     
-    if flight_cost_match:
-        # Clean up the match to get just the number
-        price_part = flight_cost_match.group(0)
-        # Extract numeric value
-        num_match = re.search(r"\d+(?:,\d{3})*(?:\.\d+)?", price_part)
-        if num_match:
-            flight_total = num_match.group(1).replace(",", ".")
-    
-    if feasibility_match:
-        flight_feasible = feasibility_match.group(1).lower() == "true"
+    # if flight_cost_match:
+    #     # Clean up the match to get just the number
+    #     price_part = flight_cost_match.group(0)
+    #     # Extract numeric value
+    #     num_match = re.search(r"\d+(?:,\d{3})*(?:\.\d+)?", price_part)
+    #     if num_match:
+    #         flight_total = num_match.group(1).replace(",", ".")
+    #
+    # if feasibility_match:
+    #     flight_feasible = feasibility_match.group(1).lower() == "true"
     
     return {
         "flight_details": str(response),
-        "flight_total_cost": flight_total,
-        "flight_feasible": flight_feasible
+        # "flight_total_cost": flight_total,
+        # "flight_feasible": flight_feasible
     }

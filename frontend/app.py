@@ -7,9 +7,19 @@ from schemas import TravellerProfile
 from datetime import datetime, timedelta
 from typing import Optional
 import requests
+import ast
 
 load_dotenv(find_dotenv())
 
+def display_travel_plan(response_data: dict):
+    st.title("🌍 Your Travel Plan")
+    
+    ai_response = response_data.get("plan", "Could not obtain a plan")
+    
+    if ai_response:
+        st.markdown(ai_response)
+    else:
+        st.error("Could not extract AI response.")
 
 # Browser tab configuration
 st.set_page_config(page_title="Travel Planning Form", page_icon="✈️")
@@ -209,6 +219,7 @@ if st.session_state.submitted and "form_data" in st.session_state:
             st.toast("Response has been received successfully.", icon="🥳")
             print("Response has been received successfully.")
             print(f"Response: {response.json()}")
+            display_travel_plan(response.json())
         case 500:
             st.toast("Request code 500 returned. Something went wrong with the server.", icon="🚨")
             print("Request code 500 returned. Something went wrong with the server.")

@@ -125,19 +125,19 @@ def accoms_agent_node(state: State):
     accoms_total = "N/A"
     accoms_feasible = True
     
-    if accoms_cost_match:
-        # Clean up the match to get just the number
-        price_part = accoms_cost_match.group(0)
-        # Extract numeric value
-        num_match = re.search(r"\d+(?:,\d{3})*(?:\.\d+)?", price_part)
-        if num_match:
-            accoms_total = num_match.group(1).replace(",", ".")
-    
-    if feasibility_match:
-        accoms_feasible = feasibility_match.group(1).lower() == "true"
+    # if accoms_cost_match:
+    #     # Clean up the match to get just the number
+    #     price_part = accoms_cost_match.group(0)
+    #     # Extract numeric value
+    #     num_match = re.search(r"\d+(?:,\d{3})*(?:\.\d+)?", price_part)
+    #     if num_match:
+    #         accoms_total = num_match.group(1).replace(",", ".")
+    #
+    # if feasibility_match:
+    #     accoms_feasible = feasibility_match.group(1).lower() == "true"
     
     return {
         "accoms_details": str(response),
-        "accoms_total_cost": accoms_total,
-        "accoms_feasible": accoms_feasible
+        # "accoms_total_cost": accoms_total,
+        # "accoms_feasible": accoms_feasible
     }

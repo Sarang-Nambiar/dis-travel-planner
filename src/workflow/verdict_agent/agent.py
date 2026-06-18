@@ -122,4 +122,6 @@ def verdict_agent_node(state: State):
 
     logging.info(f"Plan has been generated: {response}")
 
-    return {"plan": str(response)}
+    msg = response["messages"][-1].content
+
+    return {"plan": msg}
